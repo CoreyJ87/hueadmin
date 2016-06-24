@@ -5,12 +5,16 @@ var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 var huejay = require('huejay');
-var fs = require('fs');
+var Promise = require("bluebird");
+var fs = Promise.promisifyAll(require("fs"));
 var routes = require('./routes/index');
 var users = require('./routes/users');
+var savelight = require('./routes/savelight');
 
+const debug=true;
 const getClient = require('./getClient');
 const Client = new getClient();
+
 var app = express();
 var router = express.Router();
 
@@ -27,51 +31,63 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use(function (req,res,next){
-  Client.searchForDevices().then((deviceIP) => {
-    req.deviceIP = deviceIP;
-    next();
-  });
-});
-app.use(function (req,res,next){
   //Check if creds file exists
   fs.stat('./creds', function(err, stat) {
     if(err == null) {
-      //Since the creds file does exist. Grab userid from creds file and instantiate client. Attach client to request.
-      let user=Client.getUserFromFile(req.deviceIP);
-      console.log(`returned: ${user}`)
+      //Since the creds file does exist. Grab userid/ip from creds file and instantiate client. Attach client to request.
+      var user='';
+      var deviceIP='';
+
+      console.log('Creds file exists. Reading userID');
+      fs.readFileAsync("./creds", "utf8").then((fileData)=>{
+        let parsedFileData=JSON.parse(fileData);
+        deviceIP=parsedFileData.deviceIP;
+        user=parsedFileData.user;
+      });
+
+      if (debug) console.log(`returned: ${user}`)
+
       req.theclient = new huejay.Client({
-        host:     req.deviceIP,
+        host:     deviceIP,
         username: user
       });
-      console.log(req.theclient);
+
+      if(debug) console.log(req.theclient);
+
       next();
     } else if(err.code == 'ENOENT') {
-      Client.createUser(req.deviceIP).then((user) =>{
-        console.log(`we got back: ${user}`)
-        //User does not exist now we create and instantiate new client /w created user. Then attach client to the request.
-        if(user != undefined){
-          req.theclient = new huejay.Client({
-            host:     req.deviceIP,
-            username: user
-          });
-          console.log(req.theclient);
-          next();
-        }
-        else {
-          res.send('link button not pressed');
-        }
-      });
+      Client.searchForDevices().then((deviceIP) => {
+        deviceIP = (deviceIP != undefined) ? deviceIP : `192.168.1.158`;
+        Client.createUser(deviceIP).then((user) =>{
+          if(debug) console.log(`We got back: ${user} from the user creation. With a device ip of ${deviceIP}`)
+
+          //User does not exist now we create and instantiate new client /w created user. Then attach client to the request.
+          if(user != undefined){
+            req.theclient = new huejay.Client({
+              host:     deviceIP,
+              username: user
+            });
+
+            if(debug) console.log(req.theclient);
+            next();
+          }
+          else {
+            res.send('link button not pressed');
+          }
+        });
+      })
     } else {
       console.log('Some other error: ', err.code);
       res.send('Somethings fucky');
     }
-  });
+  })
 });
 
 
 app.use('/', routes);
 app.use('/users', users);
-
+app.use('/savelight',savelight);
+app.use('/getlightinfo',getlightinfo);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
@@ -103,107 +119,5 @@ app.use(function(err, req, res, next) {
     error: {}
   });
 });
-
-
-//Get all lights data - old function will end up having its own route like users
-app.get('/getlightinfo/:id?',function (req,res){
-  let client = req.theclient;
-  let lightstring = '';
-
-  if(req.params.id){
-    client.lights.getById(req.params.id)
-    .then(light => {
-      console.log('Found light:');
-      console.log(`  Light [${light.id}]: ${light.name}`);
-      lightstring += `Light [${light.id}]: ${light.name}<br>`
-      lightstring += `  Type:             ${light.type}<br>`
-      lightstring += `  Unique ID:        ${light.uniqueId}<br>`
-      lightstring += `  Manufacturer:     ${light.manufacturer}<br>`
-      lightstring += `  Model Id:         ${light.modelId}<br>`
-      lightstring += '  Model:<br>'
-      lightstring += `    Id:             ${light.model.id}<br>`
-      lightstring += `    Manufacturer:   ${light.model.manufacturer}<br>`
-      lightstring += `    Name:           ${light.model.name}<br>`
-      lightstring += `    Type:           ${light.model.type}<br>`
-      lightstring += `    Color Gamut:    ${light.model.colorGamut}<br>`
-      lightstring += `    Friends of Hue: ${light.model.friendsOfHue}<br>`
-      lightstring += `  Software Version: ${light.softwareVersion}<br>`
-      lightstring += '  State:<br>'
-      lightstring += `    On:         ${light.on}<br>`
-      lightstring += `    Reachable:  ${light.reachable}<br>`
-      lightstring += `    Brightness: ${light.brightness}<br>`
-      lightstring += `    Color mode: ${light.colorMode}<br>`
-      lightstring += `    Hue:        ${light.hue}<br>`
-      lightstring += `    Saturation: ${light.saturation}<br>`
-      lightstring += `    X/Y:        ${light.xy[0]}, ${light.xy[1]}<br>`
-      lightstring += `    Color Temp: ${light.colorTemp}<br>`
-      lightstring += `    Alert:      ${light.alert}<br>`
-      lightstring += `    Effect:     ${light.effect}<br>`
-      res.send(lightstring)
-    })
-    .catch(error => {
-      console.log('Could not find light');
-      console.log(error.stack);
-    });
-  }
-  else{
-    client.lights.getAll()
-    .then(lights => {
-      for (let light of lights) {
-        lightstring += `Light [${light.id}]: ${light.name}<br>`
-        lightstring += `  Type:             ${light.type}<br>`
-        lightstring += `  Unique ID:        ${light.uniqueId}<br>`
-        lightstring += `  Manufacturer:     ${light.manufacturer}<br>`
-        lightstring += `  Model Id:         ${light.modelId}<br>`
-        lightstring += '  Model:<br>'
-        lightstring += `    Id:             ${light.model.id}<br>`
-        lightstring += `    Manufacturer:   ${light.model.manufacturer}<br>`
-        lightstring += `    Name:           ${light.model.name}<br>`
-        lightstring += `    Type:           ${light.model.type}<br>`
-        lightstring += `    Color Gamut:    ${light.model.colorGamut}<br>`
-        lightstring += `    Friends of Hue: ${light.model.friendsOfHue}<br>`
-        lightstring += `  Software Version: ${light.softwareVersion}<br>`
-        lightstring += '  State:<br>'
-        lightstring += `    On:         ${light.on}<br>`
-        lightstring += `    Reachable:  ${light.reachable}<br>`
-        lightstring += `    Brightness: ${light.brightness}<br>`
-        lightstring += `    Color mode: ${light.colorMode}<br>`
-        lightstring += `    Hue:        ${light.hue}<br>`
-        lightstring += `    Saturation: ${light.saturation}<br>`
-        lightstring += `    X/Y:        ${light.xy[0]}, ${light.xy[1]}<br>`
-        lightstring += `    Color Temp: ${light.colorTemp}<br>`
-        lightstring += `    Alert:      ${light.alert}<br>`
-        lightstring += `    Effect:     ${light.effect}<br>`
-        lightstring += "<br><br>";
-      }
-      res.send(lightstring)
-    });
-  }
-
-});
-//old function will end up having its own route. like users
-app.get('/savelight/:id/:hue/:brightness/:saturation/:enabled',function (req,res){
-
-  let client = req.theclient;
-  if(req.params.id){
-    client.lights.getById(req.params.id)
-    .then(light => {
-      if(req.params.brightness && req.params.brightness != 'nochange') light.brightness = req.params.brightness;
-      if(req.params.hue && req.params.hue != 'nochange') light.hue = req.params.hue;
-      if(req.params.saturation  && req.params.saturation != 'nochange') light.saturation = req.params.saturation;
-      if(typeof(req.params.enabled) != undefined && req.params.enabled != 'nochange') light.on = req.params.enabled;
-      return client.lights.save(light);
-    })
-    .then(light => {
-      console.log(`Updated light [${light.id}]`);
-      res.send(`Updated light [${light.id}]`)
-    })
-    .catch(error => {
-      console.log('Something went wrong');
-      console.log(error.stack);
-    });
-  }
-});
-
 
 module.exports = app;

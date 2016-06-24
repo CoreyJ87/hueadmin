@@ -4,7 +4,6 @@
 var express = require('express');
 var app = express();
 let huejay = require('huejay');
-var fs = require('fs');
 class getClient {
 
   searchForDevices(){
@@ -12,19 +11,14 @@ class getClient {
     return huejay.discover()
     .then( (bridges) => {
       if (!bridges.length) {
-        console.log('- No bridges found');
+        console.log('--No bridges found--');
         return;
       }
       for (let bridge of bridges) {
-        console.log(`- Id: ${bridge.id}, IP: ${bridge.ip}`);
+        console.log(`Bridge Found - Id: ${bridge.id}, IP: ${bridge.ip}`);
         return bridge.ip
       }
     });
-  }
-
-  getUserFromFile(deviceIP){
-    console.log('Creds file exists. Reading userID');
-    return fs.readFileSync('./creds', 'utf8')
   }
 
   createUser(deviceIP){
@@ -40,12 +34,17 @@ class getClient {
 
     let user = new client.users.User;
     user.deviceType = 'customDevice';
-    //Create actual user
+
+    //Create actual user and return it.
     return client.users.create(user)
     .then(user => {
       console.log(`New user: ${user.username} created. With device type: ${user.deviceType}`);
-      //Write user to creds file
-      fs.writeFile("./creds", user.username, function(err) {
+
+      let saveData = {}
+      saveData.deviceIP=deviceIP;
+      saveData.user=user.username;
+      //Write user/deviceip to creds file
+      fs.writeFile("./creds", JSON.stringify(saveData), function(err) {
         if(err) {
           return console.log(err);
         }
