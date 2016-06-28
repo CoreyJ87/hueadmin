@@ -4,33 +4,36 @@
 var express = require('express');
 var app = express();
 let huejay = require('huejay');
+var Promise = require("bluebird");
+var fs = Promise.promisifyAll(require("fs"));
+const debug=true;
 class getClient {
 
   searchForDevices(){
-    console.log('Discovering bridges...');
+    if(debug) console.log('Discovering bridges...');
     return huejay.discover()
     .then( (bridges) => {
       if (!bridges.length) {
-        console.log('--No bridges found--');
+        if(debug) console.log('--No bridges found--');
         return;
       }
       for (let bridge of bridges) {
-        console.log(`Bridge Found - Id: ${bridge.id}, IP: ${bridge.ip}`);
+        if(debug) console.log(`Bridge Found - Id: ${bridge.id}, IP: ${bridge.ip}`);
         return bridge.ip
       }
     });
   }
 
   createUser(deviceIP){
-    console.log('Attempting to create user....');
-    console.log('Make sure link button on bridge is pressed.....');
+    if(debug) console.log('Attempting to create user....');
+    if(debug) console.log('Make sure link button on bridge is pressed.....');
 
     //instantiate default client to make create user call
     let client = new huejay.Client({
       host:     deviceIP,
       username: 'default'  //'faDU2YmXESWEGdLea3kkZi-8CB7tSuhuPl6ZDBob'
     });
-    console.log(client);
+    if(debug) console.log(client);
 
     let user = new client.users.User;
     user.deviceType = 'customDevice';
@@ -49,6 +52,7 @@ class getClient {
           return console.log(err);
         }
       });
+      return user.username;
     })
     .catch(error => {
       if (error instanceof huejay.Error && error.type === 101) {

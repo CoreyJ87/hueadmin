@@ -10,6 +10,8 @@ var fs = Promise.promisifyAll(require("fs"));
 var routes = require('./routes/index');
 var users = require('./routes/users');
 var savelight = require('./routes/savelight');
+var getlightinfo = require('./routes/getlightinfo');
+var deleteUser = require('./routes/deleteUser');
 
 const debug=true;
 const getClient = require('./getClient');
@@ -20,7 +22,7 @@ var router = express.Router();
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
-app.set('view engine', 'jade');
+app.set('view engine', 'hbs');
 
 // uncomment after placing your favicon in /public
 //app.use(favicon(path.join(__dirname, 'public', 'favicon.ico')));
@@ -29,6 +31,7 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
+
 
 app.use(function (req,res,next){
   //Check if creds file exists
@@ -43,18 +46,18 @@ app.use(function (req,res,next){
         let parsedFileData=JSON.parse(fileData);
         deviceIP=parsedFileData.deviceIP;
         user=parsedFileData.user;
+
+        if (debug) console.log(`returned: ${user}`)
+
+        req.theclient = new huejay.Client({
+          host:     deviceIP,
+          username: user
+        });
+
+        if(debug) console.log(req.theclient);
+
+        next();
       });
-
-      if (debug) console.log(`returned: ${user}`)
-
-      req.theclient = new huejay.Client({
-        host:     deviceIP,
-        username: user
-      });
-
-      if(debug) console.log(req.theclient);
-
-      next();
     } else if(err.code == 'ENOENT') {
       Client.searchForDevices().then((deviceIP) => {
         deviceIP = (deviceIP != undefined) ? deviceIP : `192.168.1.158`;
@@ -88,7 +91,7 @@ app.use('/', routes);
 app.use('/users', users);
 app.use('/savelight',savelight);
 app.use('/getlightinfo',getlightinfo);
-
+app.use('/deleteUser',deleteUser);
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
   var err = new Error('Not Found');

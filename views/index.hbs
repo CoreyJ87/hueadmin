@@ -1,0 +1,45 @@
+<div class="container-fluid">
+  <div class="row">
+    <h2>SyNHue Admin</h2>
+    <div>Connected to {{deviceIP}} with user {{user}}</div><br><br>
+    <div class="col-sm-3">
+      Found Lights:
+      <div class="btn-group" data-toggle="buttons" id="lights"></div>
+    </div>
+    <div class="col-sm-2">
+      Toggle Lights
+      <div id="onoff"></div>
+    </div>
+    <div class="col-sm-2">
+      Blink Lights
+      <div id="blink"></div>
+      <div class="btn-group" id="blinkType" data-toggle="buttons">
+        <label class="btn btn-primary active">
+          <input type="radio" name="options" id="blinkonce" autocomplete="off" checked>Blink Once
+        </label>
+        <label class="btn btn-primary">
+          <input type="radio" name="options" id="blink15" autocomplete="off">Blink for 15
+        </label>
+      </div>
+    </div>
+    <div class="col-sm-1"></div>
+    <div class="col-sm-4">
+      Color Selector<br />
+      <input type='text' id="flat" />
+    </div>
+  </div>
+  <h2>Hub Users</h2>
+  <div id="userList">
+    {{#each userData}}
+    {{#if name}}
+    <div class="row">
+      <div class="col-sm-10">
+        {{name}} - {{username}} - {{deviceType}} - {{lastUse}}
+      </div>
+      <div class="col-sm-2"><button type="button" id="{{username}}" class="btn-info userdelete-btn btn">Delete</button></div>
+    </div>
+    {{/if}}
+    {{/each}}
+  </div>
+</div>
+</script>
