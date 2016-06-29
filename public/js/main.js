@@ -1,4 +1,25 @@
+var timerActive = false;
 $(document).ready(function(){
+
+
+
+  //link button
+  $('#linkButton').click(function(){
+    $('#myModal').modal('show');
+    if(timerActive==false){
+      $.ajax({
+        type: 'POST',
+        contentType: 'application/json',
+        url: 'http://localhost:3000/presslink',
+        success: function(data) {
+          console.log(JSON.stringify(data));
+          display = $('#time');
+          $('#time').children().remove();
+          startTimer(30, display);
+        }
+      });
+    }
+  });
 
   //Blink buttons
   $('#blink').on('click','.blink-btn',function(){
@@ -33,7 +54,7 @@ $(document).ready(function(){
       type: 'POST',
       data: JSON.stringify(data),
       contentType: 'application/json',
-      url: 'http://localhost:3000/deleteUser',
+      url: 'http://localhost:3000/deleteuser',
       success: function(data) {
         console.log(JSON.stringify(data));
         $('#'+data.deletedUser).parents('.row').hide(1000);
@@ -104,4 +125,25 @@ function getLightButtonState(){
     }
   });
   return activeLights;
+}
+
+
+function startTimer(duration, display) {
+  var timer = duration, minutes, seconds;
+  timerActive=true;
+  var interval = setInterval(function () {
+    minutes = parseInt(timer / 60, 10);
+    seconds = parseInt(timer % 60, 10);
+
+    minutes = minutes < 10 ? "0" + minutes : minutes;
+    seconds = seconds < 10 ? "0" + seconds : seconds;
+
+    display.text(seconds + " seconds!");
+
+    if (--timer < 0) {
+      timer = duration;
+      timerActive=false;
+      clearInterval(interval);
+    }
+  }, 1000);
 }

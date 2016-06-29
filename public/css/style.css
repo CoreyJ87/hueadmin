@@ -25,7 +25,7 @@ h2 {
 
 
 .border-bar {
-    border-top: 2px solid #fff;
+  border-top: 2px solid #fff;
 }
 
 .row {
@@ -38,4 +38,12 @@ h2 {
 
 #connectionInfo {
   text-align:center;
+}
+
+#myModal {
+  color: #000 !important;
+}
+
+#time {
+  display: inline;
 }

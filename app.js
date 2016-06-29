@@ -9,9 +9,10 @@ var Promise = require("bluebird");
 var fs = Promise.promisifyAll(require("fs"));
 var routes = require('./routes/index');
 var users = require('./routes/users');
-var savelight = require('./routes/savelight');
-var getlightinfo = require('./routes/getlightinfo');
+var saveLight = require('./routes/saveLight');
+var getlightInfo = require('./routes/getlightInfo');
 var deleteUser = require('./routes/deleteUser');
+var pressLink = require('./routes/pressLink');
 
 const debug=true;
 const getClient = require('./getClient');
@@ -90,9 +91,10 @@ app.use(function (req,res,next){
 
 app.use('/', routes);
 app.use('/users', users);
-app.use('/savelight',savelight);
-app.use('/getlightinfo',getlightinfo);
-app.use('/deleteUser',deleteUser);
+app.use('/savelight',saveLight);
+app.use('/getlightinfo',getlightInfo);
+app.use('/deleteuser',deleteUser);
+app.use('/presslink',pressLink);
 
 
 

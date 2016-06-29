@@ -4,7 +4,7 @@
     {{#if theclient}}
     <div id='connectionInfo'>Connection cannot be made because we do not have creds. and link button is not pressed. Please press it and reload page</div>
     {{else}}
-    <div id='connectionInfo'>Connected to {{deviceIP}} with user {{user}}</div><br><br>
+    <div id='connectionInfo'>Connected to {{deviceIP}} with user {{user}}</div>
   </div>
   <div id="lightContainer">
     {{#if lightData}}
@@ -44,6 +44,7 @@
             <input type="radio" name="options" id="blink15" autocomplete="off">Blink for 15
           </label>
         </div>
+         <button type="button" id="linkButton" class="btn btn-primary">Press Link Button</button>
       </div>
     </div>
     {{else}}
@@ -70,3 +71,24 @@
   <script>
   var lightData = JSON.parse('{{{lightConsole}}}')
   </script>
+
+
+  <!-- Modal -->
+<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+        <h4 class="modal-title" id="myModalLabel">Link Button Pressed</h4>
+      </div>
+      <div class="modal-body">
+        <span>Link Button Active for another: <div id='time'></div></span>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
