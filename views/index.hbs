@@ -1,45 +1,72 @@
 <div class="container-fluid">
   <div class="row">
-    <h2>SyNHue Admin</h2>
-    <div>Connected to {{deviceIP}} with user {{user}}</div><br><br>
-    <div class="col-sm-3">
-      Found Lights:
-      <div class="btn-group" data-toggle="buttons" id="lights"></div>
-    </div>
-    <div class="col-sm-2">
-      Toggle Lights
-      <div id="onoff"></div>
-    </div>
-    <div class="col-sm-2">
-      Blink Lights
-      <div id="blink"></div>
-      <div class="btn-group" id="blinkType" data-toggle="buttons">
-        <label class="btn btn-primary active">
-          <input type="radio" name="options" id="blinkonce" autocomplete="off" checked>Blink Once
-        </label>
-        <label class="btn btn-primary">
-          <input type="radio" name="options" id="blink15" autocomplete="off">Blink for 15
-        </label>
-      </div>
-    </div>
-    <div class="col-sm-1"></div>
-    <div class="col-sm-4">
-      Color Selector<br />
-      <input type='text' id="flat" />
-    </div>
+    <h2>{{title}}</h2>
+    {{#if theclient}}
+    <div id='connectionInfo'>Connection cannot be made because we do not have creds. and link button is not pressed. Please press it and reload page</div>
+    {{else}}
+    <div id='connectionInfo'>Connected to {{deviceIP}} with user {{user}}</div><br><br>
   </div>
-  <h2>Hub Users</h2>
-  <div id="userList">
-    {{#each userData}}
-    {{#if name}}
+  <div id="lightContainer">
+    {{#if lightData}}
+    {{#each lightData}}
     <div class="row">
-      <div class="col-sm-10">
-        {{name}} - {{username}} - {{deviceType}} - {{lastUse}}
+      <div class="col-sm-2"></div>
+      <div class="col-sm-3">
+        <div class="btn-group" data-toggle="buttons" id="lights">
+          <label class="btn btn-primary" id="light_{{id}}"><input type="checkbox" autocomplete="off">{{name}}</label><br />
+        </div>
       </div>
-      <div class="col-sm-2"><button type="button" id="{{username}}" class="btn-info userdelete-btn btn">Delete</button></div>
+      <div class="col-sm-2">
+        <div id="onoff">
+          <button type="button" id="onoff_{{id}}" class="{{onClass}} onoff-btn btn">Toggle Light</button><br />
+        </div>
+      </div>
+      <div class="col-sm-2">
+        <div id="blink">
+          <button type="button" id="blink_{{id}}" class="btn-info blink-btn btn">Blink Light</button><br />
+        </div>
+      </div>
     </div>
-    {{/if}}
     {{/each}}
+    <div class="row">
+      <div class="col-sm-2"></div>
+      <div class="col-sm-4">
+        Color Selector<br />
+        <input type='text' id="flat" />
+      </div>
+      <div class="col-sm-1"></div>
+      <div class="col-sm-2">
+        <div class="btn-group" id="blinkType" data-toggle="buttons">
+          <label class="btn btn-primary active">
+            <input type="radio" name="options" id="blinkonce" autocomplete="off" checked>Blink Once
+          </label>
+          <label class="btn btn-primary">
+            <input type="radio" name="options" id="blink15" autocomplete="off">Blink for 15
+          </label>
+        </div>
+      </div>
+    </div>
+    {{else}}
+    <div>Ahhhhh weird. We could not find any lights</div>
+    {{/if}}
+
+    {{#if userData}}
+    <div id="userList">
+      <h2>Hub Users</h2>
+      {{#each userData}}
+      <div class="row">
+        <div class="col-sm-10">
+          {{name}} - {{username}} - {{deviceType}} - {{lastUse}}
+        </div>
+        <div class="col-sm-2"><button type="button" id="{{username}}" class="btn-info userdelete-btn btn">Delete</button></div>
+      </div>
+      {{/each}}
+    </div>
+    {{else}}
+    <div> We were not able to get the users. This is odd. Refresh</div>
+    {{/if}}
+    {{/if}}
   </div>
-</div>
-</script>
+  <script>
+  var lightData = JSON.parse('{{{lightConsole}}}')
+  </script>

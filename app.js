@@ -75,7 +75,8 @@ app.use(function (req,res,next){
             next();
           }
           else {
-            res.send('link button not pressed');
+            req.theclient(null);
+            next();
           }
         });
       })
@@ -92,6 +93,9 @@ app.use('/users', users);
 app.use('/savelight',savelight);
 app.use('/getlightinfo',getlightinfo);
 app.use('/deleteUser',deleteUser);
+
+
+
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
   var err = new Error('Not Found');
@@ -100,7 +104,6 @@ app.use(function(req, res, next) {
 });
 
 // error handlers
-
 // development error handler
 // will print stacktrace
 if (app.get('env') === 'development') {

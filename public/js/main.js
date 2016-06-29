@@ -1,24 +1,5 @@
 $(document).ready(function(){
 
-  //Initalize buttons for lights
-  $.ajax({
-    type: 'POST',
-    contentType: 'application/json',
-    url: 'http://localhost:3000/getlightinfo',
-    success: function(data) {
-      $(data).each(function(){
-        console.log(data);
-        console.log($(this)[0].attributes.attributes)
-        var id=$(this)[0].attributes.attributes.id;
-        var name=$(this)[0].attributes.attributes.name;
-        ($(this)[0].state.attributes.on) ? onClass='lightOn btn-success' : onClass='lightOff btn-danger'
-        $('#lights').append('<label class="btn btn-primary" id="light_'+id+'"><input type="checkbox" autocomplete="off">'+name+'</label><br />');
-        $('#onoff').append('<button type="button" id="onoff_'+id+'" class="'+onClass+' onoff-btn btn">Toggle Light</button><br />');
-        $('#blink').append('<button type="button" id="blink_'+id+'" class="btn-info blink-btn btn">Blink Light</button><br />');
-      });
-    }
-  });
-
   //Blink buttons
   $('#blink').on('click','.blink-btn',function(){
     var data = {};
